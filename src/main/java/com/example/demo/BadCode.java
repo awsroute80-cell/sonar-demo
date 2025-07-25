@@ -1,17 +1,58 @@
 package com.example.demo;
 
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
+/**
+ * BadCode.java
+ * This class intentionally contains poor coding practices and vulnerabilities
+ * to demonstrate SonarQube analysis.
+ * It also starts a Jetty server to expose an HTTP endpoint for a demo deployment.
+ */
 public class BadCode {
 
     //Hardcoded credentials (Security Vulnerability)
     private static final String DB_PASSWORD = "superSecret123";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        //Start a simple Jetty HTTP server on port 8081
+        Server server = new Server(8081);
+        ServletContextHandler handler = new ServletContextHandler();
+        handler.addServlet(HelloServlet.class, "/");
+        server.setHandler(handler);
+
+        System.out.println("Starting Jetty server on http://0.0.0.0:8081");
+        server.start();
+
+        // Keep some "bad code" running so SonarQube has something to analyze
         BadCode bc = new BadCode();
-        bc.doSomething();
-        bc.infiniteLoop(); //Bug: infinite loop
+        bc.doSomething(); // contains smells and issues
+
+        // ⚠️ BUG: infinite loop (intentional for SonarQube demo, won't block Jetty server)
+        new Thread(() -> bc.infiniteLoop()).start();
+
+        // Join Jetty server
+        server.join();
+    }
+
+    //A simple servlet to return a demo response
+    public static class HelloServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
+            try {
+                resp.setContentType("text/plain");
+                resp.getWriter().println("Hello from BadCode app deployed via Jenkins & Docker!");
+                resp.getWriter().println("This app contains intentional bugs for SonarQube analysis.");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     //Long method (Code Smell)
@@ -53,7 +94,7 @@ public class BadCode {
         }
     }
 
-    //Security Vulnerability: building SQL unsafely
+    //Security Vulnerability: SQL Injection (unsafe query)
     public void insecureDbAccess(String userInput) {
         try {
             Connection conn = DriverManager.getConnection(

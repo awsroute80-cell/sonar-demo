@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.8.8'      // configure Maven in Global Tool Config
-        jdk 'JDK11'              // configure JDK in Global Tool Config
+        maven 'Maven 3.8.8'      // configured in Jenkins
+        jdk 'JDK11'              // configured in Jenkins
     }
 
     stages {
@@ -39,5 +39,22 @@ pipeline {
             }
         }
 
+        stage('Docker Build & Deploy') {
+            steps {
+                script {
+                    sh '''
+                        echo "Building Docker image..."
+                        docker build -t sonar-demo-app .
+
+                        echo "Stopping old container if running..."
+                        docker stop sonar-demo-app || true
+                        docker rm sonar-demo-app || true
+
+                        echo "Running new container on port 8081..."
+                        docker run -d --name sonar-demo-app -p 8081:8081 sonar-demo-app
+                    '''
+                }
+            }
+        }
     }
 }
