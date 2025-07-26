@@ -34,7 +34,7 @@ public class BadCode {
         BadCode bc = new BadCode();
         bc.doSomething(); // contains smells and issues
 
-        // ⚠️ BUG: infinite loop (intentional for SonarQube demo, won't block Jetty server)
+        // BUG: infinite loop (intentional for SonarQube demo, won't block Jetty server)
         new Thread(() -> bc.infiniteLoop()).start();
 
         // Join Jetty server
