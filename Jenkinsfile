@@ -2,8 +2,12 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.8.8'      // configured in Jenkins
-        jdk 'JDK11'              // configured in Jenkins
+        maven 'Maven 3.8.8'
+        jdk 'JDK11'
+    }
+
+    environment {
+        SPLUNK_URL = 'http://localhost:8088'
     }
 
     stages {
@@ -51,9 +55,22 @@ pipeline {
                         docker rm sonar-demo-app || true
 
                         echo "Running new container on port 8081..."
-                        docker run -d --name sonar-demo-app -p 8081:8081 sonar-demo-app
+                        docker run -d --restart=always --name sonar-demo-app -p 8081:8081 sonar-demo-app
                     '''
                 }
+            }
+        }
+    }
+
+    post {
+        always {
+            withCredentials([string(credentialsId: 'splunk-token', variable: 'SPLUNK_TOKEN')]) {
+                sh '''
+                    curl -k "$SPLUNK_URL/services/collector" \
+                    -H "Authorization: Splunk $SPLUNK_TOKEN" \
+                    -H "Content-Type: application/json" \
+                    -d "{\"event\": \"Jenkins Pipeline finished\", \"job\": \"$JOB_NAME\", \"build\": \"$BUILD_NUMBER\", \"status\": \"$BUILD_STATUS\"}"
+                '''
             }
         }
     }
