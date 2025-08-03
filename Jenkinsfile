@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        SPLUNK_URL = 'http://localhost:8088'
+        SPLUNK_URL = 'https://localhost:8088'
     }
 
     stages {
@@ -69,7 +69,7 @@ pipeline {
                     curl -k "$SPLUNK_URL/services/collector" \
                     -H "Authorization: Splunk $SPLUNK_TOKEN" \
                     -H "Content-Type: application/json" \
-                    -d "{\"event\": \"Jenkins Pipeline finished\", \"job\": \"$JOB_NAME\", \"build\": \"$BUILD_NUMBER\", \"status\": \"$BUILD_STATUS\"}"
+                    -d "{\\\"event\\\": \\\"Jenkins Pipeline finished\\\", \\\"job\\\": \\\"$JOB_NAME\\\", \\\"build\\\": \\\"$BUILD_NUMBER\\\", \\\"status\\\": \\\"$BUILD_STATUS\\\"}"
                 '''
             }
         }
