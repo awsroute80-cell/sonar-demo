@@ -65,12 +65,22 @@ pipeline {
     post {
         always {
             withCredentials([string(credentialsId: 'splunk-token', variable: 'SPLUNK_TOKEN')]) {
-                sh '''
-                    curl -k "$SPLUNK_URL/services/collector" \
-                    -H "Authorization: Splunk $SPLUNK_TOKEN" \
-                    -H "Content-Type: application/json" \
-                    -d "{\\\"event\\\": \\\"Jenkins Pipeline finished\\\", \\\"job\\\": \\\"$JOB_NAME\\\", \\\"build\\\": \\\"$BUILD_NUMBER\\\", \\\"status\\\": \\\"$BUILD_STATUS\\\"}"
-                '''
+                script {
+                    def payload = """
+                    {
+                      "event": "Jenkins Pipeline finished",
+                      "job": "${env.JOB_NAME}",
+                      "build": "${env.BUILD_NUMBER}",
+                      "status": "${currentBuild.currentResult}"
+                    }
+                    """
+                    sh """
+                        curl -k "${SPLUNK_URL}/services/collector" \
+                        -H "Authorization: Splunk ${SPLUNK_TOKEN}" \
+                        -H "Content-Type: application/json" \
+                        -d '${payload}'
+                    """
+                }
             }
         }
     }
